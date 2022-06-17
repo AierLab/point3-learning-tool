@@ -1,0 +1,16 @@
+{
+  "name": "male-coal-avoid-ami5o",
+  "productName": "male-coal-avoid-ami5o",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "Hobart",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "18.2.3"
+  }
+}
