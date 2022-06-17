@@ -1,6 +1,8 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
+const path_backend = path.join(__dirname, 'src', 'backend')
+const path_gui = path.join(__dirname, 'src', 'gui')
 
 function createWindow () {
   // Create the browser window.
@@ -8,12 +10,12 @@ function createWindow () {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(path_backend, 'preload.js')
     }
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile(path.join(path_gui, 'index.html'))
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
