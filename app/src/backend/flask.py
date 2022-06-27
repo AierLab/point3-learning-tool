@@ -1,4 +1,5 @@
 from flask import Flask
+from engine.align import Aligner
 
 app = Flask(__name__)
 
@@ -35,6 +36,9 @@ def get_recording_wave():
     Return: Json: id, timeA, timeB, scoreK, scoreD, scoreP"""
 @app.route('/eval/score', methods=['GET'])
 def get_recording_score():
+   forced = True
+   model = 'charsiu/en_w2v2_tiny_fc_10ms'
+   aligner = Aligner(model, forced)
    pass
 
 
