@@ -1,0 +1,65 @@
+.home-body {}
+
+.top-container {
+    flex-direction: row;
+    display: flex;
+    width: 100%;
+}
+
+.top-left {
+    width: 20%;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.5)
+}
+
+.top-right {
+    width: 80%;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.5)
+}
+
+.mid-container {
+    flex-direction: row;
+    display: flex;
+    width: 100%;
+}
+
+.item-list {
+    width: 20%;
+    border: 1px solid rgba(0, 0, 0, 0.5)
+}
+
+.audio-button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 5%;
+}
+
+.audio-body {
+    width: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.5)
+}
+
+.audio-button-mid {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 20%;
+}
+
+.audio-mic {
+    margin-left: 10%;
+}
+
+.mid-right {
+    width: 30%;
+    background-color: whitesmoke;
+    border: 1px solid rgba(0, 0, 0, 0.5)
+}
+
+.bottom-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2%;
+}
