@@ -1,7 +1,7 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
-const path_backend = path.join(__dirname, 'src', 'backend')
+const path_backend = path.join(__dirname, 'src')
 const path_gui = path.join(__dirname, 'src', 'gui')
 
 function createWindow () {
@@ -9,13 +9,19 @@ function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    webPreferences: {
-      preload: path.join(path_backend, 'preload.js')
-    }
   })
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(path_gui, 'index.html'))
+  // 加载应用----适用于 react 项目
+  mainWindow.loadURL('http://localhost:3000/')
+
+  // load the index.html of the app.
+  // mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'))
+
+  // mainWindow.loadURL(url.format({
+  //   pathname: path.join(__dirname, './build/index.html'),
+  //   protocol: 'file:',
+  //   slashes: true
+  //  }))
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

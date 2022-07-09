@@ -128,3 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .DS_Store
+
+# react
+build/
+
+node_modules/
+
+data/

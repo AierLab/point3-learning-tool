@@ -6,22 +6,19 @@ A software helping visually impaired people learning English.
 ## Project structure
 
 ```text
-├─main.js --------------the app entry point
-|                       defined in package.json
-└─src ------------------source code
-    ├─backend ----------backend tasks, .js
-    |  |                include service and renderer
-    │  └─engine --------service core, .py
-    │                   as console app or server
-    └─gui --------------web ui, .html and .css
+├─main.js --------------the app entry point defined in package.json
+├─backend --------------backend tasks
+│  └─services ----------service core, .py
+└─src ------------------source code, .js
+    └─gui --------------web ui, .html .css .js
 ```
 
 ## Todo list
-- [ ] Initialise the project.
-- [ ] Develop the ASR python engine.
-- [ ] Develop the audio cut python engine.
-- [ ] Develop the gui.
-- [ ] Develop the backend.
+- [x] Initialise the project.
+- [x] Develop the ASR python engine.
+- [x] Develop the audio cut python engine.
+- [x] Develop the gui.
+- [x] Develop the backend.
 - [ ] Finish release v1.0.
 
 ## Reference
