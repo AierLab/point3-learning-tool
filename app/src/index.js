@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './gui/assets/index.css';
+import './assets/index.css';
 import {
   BrowserRouter as Router, Route, Routes,
   // Navigate,
 } from 'react-router-dom';
 import reportWebVitals from './reportWebVitals';
-import Home from './gui/components/Home';
+import Home from './components/Home';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
