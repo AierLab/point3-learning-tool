@@ -1,15 +1,30 @@
-from flask import Flask
-from engine.align import Aligner
+from flask import Flask, request
+import json
+# from services.align import Aligner
+
+import os
 
 app = Flask(__name__)
 
 
-''' Input: a list of selected levels to select the material required. E.g: [4, 5, 6]
+''' Input: a list of selected levels to select the material required. E.g: 4, 5, 6
     Return:  a json dictionary. "id: string, title: string, length: float, level: int, update_time: date" '''
 @app.route('/material/list', methods=['GET'])
 def get_learning_materials():
-    pass
-
+    levels = list(map(int, request.args.get('levels').split(",")))
+    
+    database_origin_dir = os.path.join(os.getcwd(),"app", "backend", "services", "dbservice", "databaseOrigin")
+    names = os.listdir(database_origin_dir)
+    
+    material_list = []
+    for name in names:
+        temp_dic = None
+        with open(os.path.join(database_origin_dir, name), 'r') as f:
+            temp_dic = json.load(fp=f)
+        if temp_dic['level'] in levels:
+            material_list.append(temp_dic)
+    return json.dumps(material_list)
+                
 
 """ Input: the id of the selected material. E.g: "d290f1ee-6c54-4b01-90e6-d701748f0851"
     Return: Load the material to the app."""
@@ -43,6 +58,6 @@ def get_recording_score():
 
 
 if __name__ == '__main__':
-   app.run(debug=True)
+   app.run(debug=True, port="8888")
 
 

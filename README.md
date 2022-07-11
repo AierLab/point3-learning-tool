@@ -5,13 +5,7 @@ A software helping visually impaired people learning English.
 
 ## Project structure
 
-```text
-├─main.js --------------the app entry point defined in package.json
-├─backend --------------backend tasks
-│  └─services ----------service core, .py
-└─src ------------------source code, .js
-    └─gui --------------web ui, .html .css .js
-```
+todo
 
 ## Todo list
 - [x] Initialise the project.
