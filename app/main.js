@@ -1,51 +1,121 @@
-// Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const { app, BrowserWindow } = require('electron')
 const path = require('path')
-const path_backend = path.join(__dirname, 'src')
-const path_gui = path.join(__dirname, 'src', 'gui')
+const fs = require('fs')
+const net = require('net')
+const { spawn } = require('child_process')
 
-function createWindow () {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+const isDev = process.argv.includes('--dev')
+const PYTHON_EXECUTABLE = process.env.PYTHON_EXECUTABLE
+  || (process.platform === 'win32' ? 'python' : 'python3')
+
+let flaskProcess = null
+
+function waitForPort (port, retries = 40, interval = 250) {
+  return new Promise((resolve, reject) => {
+    const attempt = (remaining) => {
+      const socket = net.createConnection(port, '127.0.0.1')
+      socket.once('connect', () => {
+        socket.end()
+        resolve()
+      })
+      socket.once('error', () => {
+        socket.destroy()
+        if (remaining <= 0) {
+          reject(new Error(`Port ${port} not available`))
+          return
+        }
+        setTimeout(() => attempt(remaining - 1), interval)
+      })
+    }
+    attempt(retries)
   })
-
-  // 加载应用----适用于 react 项目
-  mainWindow.loadURL('http://localhost:3000/')
-
-  // load the index.html of the app.
-  // mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'))
-
-  // mainWindow.loadURL(url.format({
-  //   pathname: path.join(__dirname, './build/index.html'),
-  //   protocol: 'file:',
-  //   slashes: true
-  //  }))
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  createWindow()
+async function ensureFlaskServer () {
+  if (isDev) {
+    await waitForPort(5000).catch((err) => {
+      console.error(`Waiting for Flask dev server failed: ${err.message}`)
+    })
+    return
+  }
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  if (flaskProcess) {
+    return
+  }
+
+  const flaskScript = path.join(__dirname, 'backend', 'app.py')
+
+  console.log(`Starting Flask server with "${PYTHON_EXECUTABLE}"...`)
+  flaskProcess = spawn(
+    PYTHON_EXECUTABLE,
+    [flaskScript],
+    {
+      cwd: path.join(__dirname, 'backend'),
+      stdio: 'inherit'
+    }
+  )
+
+  flaskProcess.on('close', (code) => {
+    console.log(`Flask server exited with code ${code}`)
+    flaskProcess = null
+  })
+
+  await waitForPort(5000).catch((err) => {
+    console.error(`Waiting for Flask server failed: ${err.message}`)
+  })
+}
+
+async function createWindow () {
+  const mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 900,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:3000/')
+  } else {
+    const indexPath = path.join(__dirname, 'client', 'build', 'index.html')
+    if (fs.existsSync(indexPath)) {
+      mainWindow.loadFile(indexPath)
+    } else {
+      mainWindow.loadURL('data:text/html;charset=utf-8,' +
+        encodeURIComponent('<h2>Build not found</h2><p>Please run "npm run build" before starting Electron.</p>'))
+    }
+  }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize()
+    mainWindow.show()
+  })
+}
+
+app.whenReady().then(async () => {
+  await ensureFlaskServer()
+  await createWindow()
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+    }
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') app.quit()
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    if (flaskProcess) {
+      flaskProcess.kill()
+    }
+    app.quit()
+  }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+app.on('will-quit', () => {
+  if (flaskProcess) {
+    flaskProcess.kill()
+  }
+})

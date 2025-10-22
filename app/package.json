@@ -4,8 +4,13 @@
   "description": "About",
   "main": "main.js",
   "scripts": {
-    "start": "concurrently -k \"client start\" \"npm run electron\"",
-    "electron": "wait-on tcp:3000  & electron ."
+    "start": "concurrently -k \"npm run start:backend\" \"npm run start:react\" \"npm run start:electron\"",
+    "start:backend": "cd backend && python app.py",
+    "start:react": "cd client && react-scripts start",
+    "start:electron": "wait-on tcp:3000 tcp:5000 && electron . --dev",
+    "build": "cd client && react-scripts build",
+    "test": "cd client && react-scripts test",
+    "eject": "cd client && react-scripts eject"
   },
   "repository": {
     "type": "git",
@@ -23,6 +28,7 @@
   "devDependencies": {
     "electron": "^18.2.3",
     "electron-packager": "^15.5.1",
-    "concurrently": "^7.2.2"
+    "concurrently": "^7.2.2",
+    "wait-on": "^6.0.1"
   }
 }

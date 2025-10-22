@@ -1,29 +1,36 @@
 import React from 'react';
-import logo from '../assets/logo.svg';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import Home from './Home';
+import AdminPage from './AdminPage';
 import '../assets/App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit
-          {' '}
-          <code>src/App.js</code>
-          {' '}
-          and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <AppBar position="static">
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Point3 Learning Tool
+            </Typography>
+            <Button color="inherit" component={Link} to="/">
+              Learning
+            </Button>
+            <Button color="inherit" component={Link} to="/admin">
+              Admin
+            </Button>
+          </Toolbar>
+        </AppBar>
+
+        <Box className="App-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/admin" element={<AdminPage />} />
+          </Routes>
+        </Box>
+      </div>
+    </Router>
   );
 }
 

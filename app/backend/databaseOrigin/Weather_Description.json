@@ -1,0 +1,9 @@
+{
+  "id": "83c52707-0f1d-4b9b-bf50-5abd223e1fa5",
+  "title": "Weather_Description",
+  "text_file_dir": "Weather_Description.txt",
+  "audio_file_dir": "Weather_Description.wav",
+  "level": 2,
+  "upgrade_time": "2025-10-23 01:19:18",
+  "typeA": "standard_material"
+}

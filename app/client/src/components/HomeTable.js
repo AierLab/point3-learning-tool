@@ -1,55 +1,86 @@
-import * as React from 'react';
+import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { DataGrid } from '@mui/x-data-grid';
 
 const columns = [
-  { field: 'id', headerName: 'ID', width: 70 },
-  { field: 'age', headerName: 'Age (years old)', width: 150 },
-  { field: 'employee', headerName: 'Employee', width: 220 },
-];
-
-const rows = [
   {
-    id: 1, employee: 'Jon', age: 35,
+    field: 'materialTitle',
+    headerName: 'Material',
+    flex: 1,
+    minWidth: 180,
   },
   {
-    id: 2, employee: 'Cersei', age: 42,
+    field: 'overallScore',
+    headerName: 'Overall',
+    width: 110,
   },
   {
-    id: 3, employee: 'Jaime', age: 45,
+    field: 'fluencyScore',
+    headerName: 'Fluency',
+    width: 110,
   },
   {
-    id: 4, employee: 'Arya', age: 16,
+    field: 'accuracyScore',
+    headerName: 'Accuracy',
+    width: 110,
   },
   {
-    id: 5, employee: 'Daenerys', age: 11,
-  },
-  {
-    id: 6, employee: 'haha', age: 150,
-  },
-  {
-    id: 7, employee: 'Ferrara', age: 44,
-  },
-  {
-    id: 8, employee: 'Rossini', age: 36,
-  },
-  {
-    id: 9, employee: 'Harvey', age: 65,
-  },
-  {
-    id: 10, employee: 'Haobo', age: 11,
+    field: 'timestamp',
+    headerName: 'Recorded At',
+    width: 180,
   },
 ];
 
-export default function HomeTable() {
+function HomeTable({ recordings }) {
+  const rows = useMemo(() => recordings.map((record, index) => {
+    const evaluation = record?.evaluation || {};
+    const scoreSource = evaluation.score_details || evaluation;
+
+    const formatScore = (value) => {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return '--';
+      }
+      return Number.parseFloat(value).toFixed(1);
+    };
+
+    return {
+      id: record?.record_id || index,
+      materialTitle: record?.material_title || record?.materialId || 'Current material',
+      overallScore: formatScore(scoreSource.overall ?? scoreSource.score ?? evaluation.overall),
+      fluencyScore: formatScore(scoreSource.fluency ?? scoreSource.fluent ?? evaluation.fluency),
+      accuracyScore: formatScore(scoreSource.accuracy ?? scoreSource.pronunciation ?? evaluation.accuracy),
+      timestamp: record?.created_at || record?.timestamp || new Date().toLocaleString(),
+    };
+  }), [recordings]);
+
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <DataGrid
         rows={rows}
         columns={columns}
-        pageSize={10}
-        rowsPerPageOptions={[3]}
-        checkboxSelection
+        pageSizeOptions={[5, 10]}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 5 } },
+        }}
+        disableRowSelectionOnClick
+        density="comfortable"
       />
     </div>
   );
 }
+
+HomeTable.propTypes = {
+  recordings: PropTypes.arrayOf(PropTypes.shape({
+    record_id: PropTypes.string,
+    evaluation: PropTypes.object,
+    material_title: PropTypes.string,
+    created_at: PropTypes.string,
+    timestamp: PropTypes.string,
+  })),
+};
+
+HomeTable.defaultProps = {
+  recordings: [],
+};
+
+export default HomeTable;
