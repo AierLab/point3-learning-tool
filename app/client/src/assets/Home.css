@@ -106,20 +106,13 @@
   z-index: 0;
 }
 
-.audio-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 0;
-  overflow: hidden;
-}
-
 .audio-text {
-  flex: 0 0 45%;
-  max-height: 55%;
+  flex: 1;
   overflow-y: auto;
   padding-right: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .audio-text h2 {
@@ -136,9 +129,8 @@
 }
 
 .audio-waveform-container {
-  flex: 0 0 20%;
-  min-height: 140px;
-  max-height: 28%;
+  flex: 0 0 auto;
+  height: 160px;
   border-radius: 8px;
   overflow: hidden;
   background: #fafafa;
@@ -156,11 +148,12 @@
 }
 
 .audio-button-container {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 32px;
-  padding-top: 8px;
+  padding: 12px 0 8px 0;
 }
 
 .audio-button-mid {
@@ -186,6 +179,30 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.similarity-card {
+  background: #f5f7ff;
+  border: 1px solid rgba(48, 63, 159, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.similarity-card h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #303f9f;
+  font-weight: 600;
+}
+
+.similarity-card span {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a237e;
+  margin-top: 8px;
 }
 
 .home-table-wrapper {

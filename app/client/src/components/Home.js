@@ -26,6 +26,7 @@ export default function Home() {
   const [recordings, setRecordings] = useState([]);
   const [latestRecording, setLatestRecording] = useState(null);
   const [serverStatus, setServerStatus] = useState('checking');
+  const [waveformSimilarity, setWaveformSimilarity] = useState(null);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -57,6 +58,8 @@ export default function Home() {
   };
 
   const loadMaterialDetails = async (materialId) => {
+    setWaveformSimilarity(null);
+    setLatestRecording(null);
     try {
       const material = await apiService.getMaterialFile(materialId);
       setCurrentMaterial(material);
@@ -134,6 +137,8 @@ export default function Home() {
     if (index !== -1) {
       setCurrentMaterialIndex(index);
       setIsPlaying(false);
+      setWaveformSimilarity(null);
+      setLatestRecording(null);
     }
   };
 
@@ -167,85 +172,90 @@ export default function Home() {
         </div>
 
         <div className="audio-body">
-          <div className="audio-content">
-            {currentMaterial ? (
-              <>
-                <div className="audio-text">
-                  <h2>{currentMaterial.title}</h2>
-                  <p>
-                    {currentMaterial.text}
-                  </p>
-                </div>
+          {currentMaterial ? (
+            <>
+              <div className="audio-text">
+                <h2>{currentMaterial.title}</h2>
+                <p>
+                  {currentMaterial.text}
+                </p>
+              </div>
 
-                <div className="audio-waveform-container">
-                  <AudioWaveform
-                    currentMaterial={currentMaterial}
-                    latestRecording={latestRecording}
+              <div className="audio-waveform-container">
+                <AudioWaveform
+                  currentMaterial={currentMaterial}
+                  latestRecording={latestRecording}
+                  onSimilarityChange={setWaveformSimilarity}
+                />
+              </div>
+
+              <div className="audio-button-container">
+                <div className="audio-button-mid">
+                  <BsSkipBackward
+                    size={38}
+                    onClick={handlePrevious}
+                    style={{ cursor: 'pointer', opacity: currentMaterialIndex > 0 ? 1 : 0.3 }}
+                  />
+                  {isPlaying ? (
+                    <BsPauseCircleFill
+                      size={48}
+                      onClick={handlePlayPause}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  ) : (
+                    <BsFillPlayCircleFill
+                      size={48}
+                      onClick={handlePlayPause}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  )}
+                  <BsSkipForward
+                    size={38}
+                    onClick={handleNext}
+                    style={{
+                      cursor: 'pointer',
+                      opacity: currentMaterialIndex < materials.length - 1 ? 1 : 0.3
+                    }}
                   />
                 </div>
-
-                <audio
-                  ref={audioRef}
-                  src={`http://127.0.0.1:5000${currentMaterial.audio_url}`}
-                  onEnded={() => setIsPlaying(false)}
-                  style={{ display: 'none' }}
-                />
-              </>
-            ) : (
-              <div className="audio-placeholder">
-                Select a material to get started.
+                <div className="audio-mic">
+                  {isRecording ? (
+                    <BsStopCircleFill
+                      size={48}
+                      onClick={handleRecordToggle}
+                      style={{ cursor: 'pointer', color: '#f44336' }}
+                    />
+                  ) : (
+                    <BsMicFill
+                      size={48}
+                      onClick={handleRecordToggle}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  )}
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="audio-button-container">
-            <div className="audio-button-mid">
-              <BsSkipBackward
-                size={38}
-                onClick={handlePrevious}
-                style={{ cursor: 'pointer', opacity: currentMaterialIndex > 0 ? 1 : 0.3 }}
+              <audio
+                ref={audioRef}
+                src={`http://127.0.0.1:5000${currentMaterial.audio_url}`}
+                onEnded={() => setIsPlaying(false)}
+                style={{ display: 'none' }}
               />
-              {isPlaying ? (
-                <BsPauseCircleFill
-                  size={48}
-                  onClick={handlePlayPause}
-                  style={{ cursor: 'pointer' }}
-                />
-              ) : (
-                <BsFillPlayCircleFill
-                  size={48}
-                  onClick={handlePlayPause}
-                  style={{ cursor: 'pointer' }}
-                />
-              )}
-              <BsSkipForward
-                size={38}
-                onClick={handleNext}
-                style={{
-                  cursor: 'pointer',
-                  opacity: currentMaterialIndex < materials.length - 1 ? 1 : 0.3
-                }}
-              />
+            </>
+          ) : (
+            <div className="audio-placeholder">
+              Select a material to get started.
             </div>
-            <div className="audio-mic">
-              {isRecording ? (
-                <BsStopCircleFill
-                  size={48}
-                  onClick={handleRecordToggle}
-                  style={{ cursor: 'pointer', color: '#f44336' }}
-                />
-              ) : (
-                <BsMicFill
-                  size={48}
-                  onClick={handleRecordToggle}
-                  style={{ cursor: 'pointer' }}
-                />
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="mid-right">
+          <div className="similarity-card">
+            <h3>Similarity</h3>
+            <span>
+              {waveformSimilarity !== null ? `${waveformSimilarity.toFixed(1)}%` : '--'}
+            </span>
+          </div>
           <div className="home-table-wrapper">
             <HomeTable recordings={recordings} />
           </div>

@@ -1,13 +1,14 @@
 /* eslint-disable no-plusplus */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Box, Typography, Chip } from '@mui/material';
 import apiService from '../services/api';
 
-function AudioWaveform({ currentMaterial, latestRecording }) {
+function AudioWaveform({ currentMaterial, latestRecording, onSimilarityChange }) {
   const [referenceWaveform, setReferenceWaveform] = useState([]);
   const [userWaveform, setUserWaveform] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [similarity, setSimilarity] = useState(null);
 
   useEffect(() => {
     if (currentMaterial?.audio_url) {
@@ -20,6 +21,21 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
       loadUserWaveform(latestRecording.record_id);
     }
   }, [latestRecording]);
+
+  useEffect(() => {
+    if (referenceWaveform.length && userWaveform.length) {
+      const value = calculateSimilarity(referenceWaveform, userWaveform);
+      setSimilarity(value);
+      if (onSimilarityChange) {
+        onSimilarityChange(value);
+      }
+    } else {
+      setSimilarity(null);
+      if (onSimilarityChange) {
+        onSimilarityChange(null);
+      }
+    }
+  }, [referenceWaveform, userWaveform, onSimilarityChange]);
 
   const loadReferenceWaveform = async (audioUrl) => {
     try {
@@ -59,16 +75,16 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
         const blockSize = Math.floor(channelData.length / samples);
         const waveform = [];
 
-        for (let i = 0; i < samples; i++) {
+        for (let i = 0; i < samples; i += 1) {
           const start = i * blockSize;
           const end = start + blockSize;
           let sum = 0;
 
-          for (let j = start; j < end && j < channelData.length; j++) {
+          for (let j = start; j < end && j < channelData.length; j += 1) {
             sum += Math.abs(channelData[j]);
           }
 
-          waveform.push(sum / blockSize);
+          waveform.push(blockSize > 0 ? sum / blockSize : 0);
         }
 
         resolve(waveform);
@@ -83,21 +99,76 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
 
   const generatePlaceholderWaveform = () => {
     const data = [];
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 500; i += 1) {
       data.push(Math.sin(i * 0.1) * 0.5 + 0.5);
     }
     return data;
   };
 
-  const getOptions = () => {
+  const calculateSimilarity = (reference, user) => {
+    const targetLength = Math.min(reference.length, user.length, 500);
+    if (targetLength === 0) {
+      return null;
+    }
+
+    const resample = (arr) => {
+      if (arr.length === targetLength) {
+        return arr;
+      }
+      const result = [];
+      for (let i = 0; i < targetLength; i += 1) {
+        const index = Math.floor((i / targetLength) * arr.length);
+        result.push(arr[Math.min(index, arr.length - 1)]);
+      }
+      return result;
+    };
+
+    const normalize = (arr) => {
+      const maxValue = Math.max(...arr, 0);
+      if (maxValue === 0) {
+        return arr.map(() => 0);
+      }
+      return arr.map((value) => value / maxValue);
+    };
+
+    const refNorm = normalize(resample(reference));
+    const usrNorm = normalize(resample(user));
+
+    let dot = 0;
+    let magRef = 0;
+    let magUsr = 0;
+
+    for (let i = 0; i < targetLength; i += 1) {
+      const refVal = refNorm[i];
+      const usrVal = usrNorm[i];
+      dot += refVal * usrVal;
+      magRef += refVal * refVal;
+      magUsr += usrVal * usrVal;
+    }
+
+    if (!magRef || !magUsr) {
+      return 0;
+    }
+
+    const cosine = dot / (Math.sqrt(magRef) * Math.sqrt(magUsr));
+    const bounded = Math.min(Math.max(cosine, 0), 1);
+    return Number((bounded * 100).toFixed(1));
+  };
+
+  const maxAmplitude = useMemo(() => {
+    const maxRef = referenceWaveform.length ? Math.max(...referenceWaveform) : 0;
+    const maxUsr = userWaveform.length ? Math.max(...userWaveform) : 0;
+    const maxValue = Math.max(maxRef, maxUsr, 0.1);
+    return Math.min(Math.max(maxValue * 1.15, 0.2), 1.5);
+  }, [referenceWaveform, userWaveform]);
+
+  const chartOptions = useMemo(() => {
     const series = [];
     const hasUserData = userWaveform.length > 0;
     const hasReferenceData = referenceWaveform.length > 0;
 
     const maxLength = Math.max(referenceWaveform.length, userWaveform.length, 100);
-    const timeAxis = Array.from({ length: maxLength }, (_, i) =>
-      ((i / maxLength) * 100).toFixed(0) + '%'
-    );
+    const timeAxis = Array.from({ length: maxLength }, (_, index) => `${((index / maxLength) * 100).toFixed(0)}%`);
 
     if (hasReferenceData) {
       series.push({
@@ -171,7 +242,7 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
         top: 60,
         right: 40,
         bottom: 60,
-        left: 60,
+        left: 30,
         containLabel: true
       },
       xAxis: {
@@ -187,11 +258,12 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
       },
       yAxis: {
         type: 'value',
-        name: 'Amplitude',
-        nameLocation: 'middle',
-        nameGap: 40,
         min: 0,
-        max: 1
+        max: maxAmplitude,
+        axisLabel: { show: false },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false }
       },
       series,
       tooltip: {
@@ -225,7 +297,7 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
         }
       ]
     };
-  };
+  }, [referenceWaveform, userWaveform, maxAmplitude]);
 
   return (
     <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -242,10 +314,10 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
         </Box>
       )}
 
-      {!loading && userWaveform.length > 0 && (
+      {!loading && similarity !== null && (
         <Box sx={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
           <Chip
-            label="Comparison View"
+            label={`Similarity ${similarity}%`}
             color="success"
             size="small"
           />
@@ -253,7 +325,7 @@ function AudioWaveform({ currentMaterial, latestRecording }) {
       )}
 
       <ReactECharts
-        option={getOptions()}
+        option={chartOptions}
         style={{ height: '100%', width: '100%' }}
         notMerge
         lazyUpdate
